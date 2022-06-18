@@ -1,5 +1,6 @@
 import * as DID_SIOP from 'did-siop'
-import { PARAMS } from "./params"
+import { PARAMS, optionsWithClaims, tokenData } from "./params"
+
 
 let siop_rp: any = undefined;
 let request: any;
@@ -24,20 +25,25 @@ async function startProcess(){
     );
 
     console.log('RP SigningParams added ...');
-    request = await siop_rp.generateRequest();
+    request = await siop_rp.generateRequest(optionsWithClaims);    
 
     console.log('Request generated ...', request);
 
     console.log('Moving to Provider side ...');
 
-    let resJWT = await OnExtension(request);    
+    let siopTokenEncoded = await OnExtension(request);    
     
-    let valid = await siop_rp.validateResponse(resJWT);
+    let siopTokenObjects = await siop_rp.validateResponseWithVPData(siopTokenEncoded, {
+        redirect_uri: PARAMS.KEY_RP.redirect_uri,
+        isExpirable: true,
+        nonce: optionsWithClaims.nonce,
+    })
+
     console.log('Response validated...');
-    console.log('Validated response',valid); 
+    console.log('Validated response',siopTokenObjects); 
 }
 
-async function OnExtension(request:string):Promise<string>{
+async function OnExtension(request:string):Promise<DID_SIOP.SIOPTokensEcoded>{
     const provider = new DID_SIOP.Provider();
 
     return new Promise(async (resolve, reject) => {
@@ -59,15 +65,18 @@ async function OnExtension(request:string):Promise<string>{
             console.log('decodedRequest',decodedRequest);
             let jwtExpiration = 5000;
             try {
-            await provider.generateResponse(decodedRequest.payload, jwtExpiration).then(responseJWT => {
+                let vps: DID_SIOP.VPData = {
+                    vp_token : tokenData.good.singleVP.vp_token,
+                    _vp_token : tokenData.good.singleVP.id_token._vp_token
+                };
+                let siopTokenEncoded = await provider.generateResponseWithVPData(decodedRequest.payload, 5000,vps);
                 console.log('Response generated ...');
-                console.log('responseJWT',responseJWT); 
-                resolve(responseJWT);
-          })
-        }
-        catch (err){
-            console.log("provider.generateResponse Error " , err);
-        }
+                console.log('responseJWT',siopTokenEncoded); 
+                resolve(siopTokenEncoded);
+            }
+            catch (err){
+                console.log("provider.generateResponse Error " , err);
+            }
         })
         .catch(err => {
           console.log("invalid request" , err);

@@ -1,5 +1,5 @@
 {
-  "name": "siop-test01",
+  "name": "siop-auth-sample",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,6 +14,6 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "did-siop": "github:RadicalLedger/did-siop-lib#pub"
+    "did-siop": "^2.0.2"
   }
 }
