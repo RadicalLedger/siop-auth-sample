@@ -17,12 +17,7 @@ async function startProcess(){
         [keyResolv2020]
     )
     console.log('Got RP instance ....');
-    siop_rp.addSigningParams(
-        PARAMS.KEY_RP.sigining_key, // Private key
-        PARAMS.KEY_RP.kid, // Corresponding authentication method in RP's did document (to be used as kid value for key)
-        PARAMS.KEY_RP.key_format, //Format in which the key is supplied. List of values is given below
-        PARAMS.KEY_RP.key_algorithm
-    );
+    siop_rp.addSigningParams(PARAMS.KEY_RP.sigining_key); // Private key
 
     console.log('RP SigningParams added ...');
     request = await siop_rp.generateRequest(optionsWithClaims);    
@@ -44,18 +39,13 @@ async function startProcess(){
 }
 
 async function OnExtension(request:string):Promise<DID_SIOP.SIOPTokensEcoded>{
-    const provider = new DID_SIOP.Provider();
+    let keyResolv2020 = new DID_SIOP.Resolvers.KeyDidResolver('key', "@digitalbazaar/ed25519-verification-key-2020")
+    const provider = await DID_SIOP.Provider.getProvider(PARAMS.KEY_USER.did,undefined,[keyResolv2020]);
 
     return new Promise(async (resolve, reject) => {
-        await provider.setUser(PARAMS.KEY_USER.did);// User's did
         console.log('User DID set to Provider ...');
     
-        provider.addSigningParams(
-            PARAMS.KEY_USER.sigining_key, // User's private key
-            PARAMS.KEY_USER.kid, // Corresponding authentication method in user's did document (to be used as kid value for key)
-            PARAMS.KEY_USER.key_format, //Format in which the key is supplied. List of values is given below
-            PARAMS.KEY_USER.key_algorithm
-            );// If several keys are provided, one will be selected randomly when generating the request. To remove a key use provider.removeSigningParams(kid)
+        provider.addSigningParams(PARAMS.KEY_USER.sigining_key); // User's private key
         
         console.log('User SigningParams added ...');
 
