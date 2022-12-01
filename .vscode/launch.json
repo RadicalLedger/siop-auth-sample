@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Example",
+        "type": "node",
+        "request": "launch",
+        "runtimeExecutable": "ts-node",
+  
+        "args": ["src/auth_vpdata_method_key.ts"],
+        
+        "cwd": "${workspaceRoot}",
+        "internalConsoleOptions": "openOnSessionStart",
+        "skipFiles": ["<node_internals>/**", "node_modules/**"]
+      }
+    ]
+  }
